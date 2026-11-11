@@ -1,32 +1,24 @@
 import jwt from 'jsonwebtoken';
-import { config } from '../config/index';
-
-const JWT_SECRET = config.token_key;
+import { config } from '../config/index.js';
 
 const authenticateJWT = (req, res, next) => {
-  // Verificar si el encabezado Authorization existe
   const authHeader = req.header('Authorization');
 
+  // Se mantiene 403 para compatibilidad con el frontend actual.
   if (!authHeader) {
     return res.status(403).json({ message: 'Acceso denegado. No se proporcionó token.' });
   }
 
-  // Verificar que el token siga el formato "Bearer <token>"
-  const token = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
-
-  if (!token) {
+  // Formato esperado: "Bearer <token>"
+  const [scheme, token] = authHeader.split(' ');
+  if (scheme !== 'Bearer' || !token) {
     return res.status(403).json({ message: 'Formato de token incorrecto. Se espera "Bearer <token>".' });
   }
 
   try {
-    // Verificar y decodificar el token
-    const decoded = jwt.verify(token, JWT_SECRET);
-
-    // Adjuntar los datos del usuario al objeto req
-    req.user = decoded;
-
-    // Continuar con la siguiente función
-    next();
+    // Se fija el algoritmo para impedir ataques de confusión de algoritmo.
+    req.user = jwt.verify(token, config.token_key, { algorithms: ['HS256'] });
+    return next();
   } catch (error) {
     return res.status(401).json({ message: 'Token inválido o expirado.' });
   }
