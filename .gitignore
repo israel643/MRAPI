@@ -1,0 +1,16 @@
+# Dependencias (se instalan con `npm ci`)
+node_modules/
+
+# Variables de entorno con secretos (usar .env.example como plantilla)
+.env
+.env.*
+!.env.example
+
+# Sistema operativo / editores
+.DS_Store
+
+# Logs y cobertura
+npm-debug.log*
+logs/
+*.log
+coverage/
